@@ -14,7 +14,7 @@ The base command is `/bread`.
 ## Build
 This project uses Maven. Just clone a copy of this project to your storage and run `mvn clean package` to build.
 
-The available plugins will be built in directory `spigot/target` and `sponge/target`.
+The available plugins will be built in directory `sponge/target` and `spigot/target`.
 
 ## Metrics
 This project uses bStats to collect data.
