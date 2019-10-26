@@ -24,7 +24,7 @@ The available plugins will be built in directory `sponge/target` and `spigot/tar
 ## Metrics
 This project uses bStats to collect data.
 
-For Sponge, this function is disabled by default. You can enable it by typing `sponge metrics bread enable` on your server to support our work.
+For Sponge, this function is disabled by default. You can enable it by typing `/sponge metrics bread enable` on your server to support our work.
 
 For Spigot, this function is enabled by default. If you don't want to send data to bStats, you can disable bStats by changing `plugins/bStats/config.yml`.
 
