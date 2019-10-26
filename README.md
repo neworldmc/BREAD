@@ -14,7 +14,7 @@ The base command is `/bread`.
 
 ## Requirements
 - For Sponge: Java 8, any server platform (this project doesn't support clients) which supports Sponge API 7.x
-- For Spigot: Java 8-11, Spigot (and its derivatives) 1.13 (and higher versions)
+- For Spigot: Java 8-11, Spigot (or its derivatives) 1.13 (or higher versions)
 
 ## Build
 This project uses Maven. Just clone a copy of this project to your storage and run `mvn clean package` to build. (Notice: Please run maven with Java 8, otherwise your build will fail.)
