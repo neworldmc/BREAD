@@ -1,0 +1,14 @@
+name: ${project.name}
+main: ${project.pluginPackage}.${project.bukkit.entryClass}
+version: ${project.version}
+api-version: ${project.bukkit.apiVersion}
+description: ${project.description}
+author: Sunbread
+commands:
+  bread:
+    description: Base command for BREAD
+    usage: /bread
+permissions:
+  bread.admin:
+    description: Allows admin to use BREAD
+    default: op
