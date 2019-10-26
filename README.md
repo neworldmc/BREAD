@@ -3,7 +3,8 @@ Block Redstone Event Analyse and Diagnose
 
 ## Commands
 The base command is `/bread`.
-- `/bread start` (Sponge) / `/bread run` (Spigot) - Start BREAD
+
+- `/bread start` (Sponge) or `/bread run` (Spigot) - Start BREAD
 - `/bread fast` - Start fast BREAD
 - `/bread stop` - Stop running BREAD
 - `/bread status` - View status of BREAD, and last BREAD result if it exists
@@ -11,8 +12,12 @@ The base command is `/bread`.
 ## Permissions
 - `bread.admin` - Allow admin to use BREAD. OPs have this permission by default.
 
+## Requirements
+- For Sponge: Java 8, any server platform (this project doesn't support clients) which supports Sponge API 7.x
+- For Spigot: Java 8-11, Spigot (and its derivatives) 1.13 (and higher versions)
+
 ## Build
-This project uses Maven. Just clone a copy of this project to your storage and run `mvn clean package` to build.
+This project uses Maven. Just clone a copy of this project to your storage and run `mvn clean package` to build. (Notice: Please run maven with Java 8, otherwise your build will fail.)
 
 The available plugins will be built in directory `sponge/target` and `spigot/target`.
 
