@@ -14,7 +14,14 @@ The base command is `/bread`.
 ## Build
 This project uses Maven. Just clone a copy of this project to your storage and run `mvn clean package` to build.
 
-The available plugins are in directory `spigot/target` and `sponge/target`.
+The available plugins will be built in directory `spigot/target` and `sponge/target`.
+
+## Metrics
+This project uses bStats to collect data.
+
+For Sponge, this function is disabled by default. You can enable it by typing `sponge metrics bread enable` on your server to support our work.
+
+For Spigot, this function is enabled by default. If you don't want to send data to bStats, you can disable bStats by changing `plugins/bStats/config.yml`.
 
 ## Contributing
 Just fork this project, modify your fork, and send a pull request to our project, like contributing on other projects on GitHub.
