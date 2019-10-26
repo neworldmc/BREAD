@@ -13,8 +13,8 @@ The base command is `/bread`.
 
 ## Build
 This project uses Maven. Just clone a copy of this project to your storage and run `mvn clean package` to build.
+
 The available plugins are in directory `spigot/target` and `sponge/target`.
 
 ## Contributing
 Just fork this project, modify your fork, and send a pull request to our project, like contributing on other projects on GitHub.
-
