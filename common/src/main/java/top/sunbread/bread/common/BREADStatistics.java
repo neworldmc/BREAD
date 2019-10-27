@@ -21,8 +21,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * A util class that provides statistics data structure.
+ */
 public final class BREADStatistics {
 
+    /**
+     * A structure of a weighted point.
+     */
     public static final class Point {
 
         public int x, y, z, w;
@@ -49,6 +55,9 @@ public final class BREADStatistics {
 
     }
 
+    /**
+     * A structure of the statistics of a cluster.
+     */
     public static final class ClusterStatistics {
 
         public Set<Point> raw;
@@ -82,6 +91,9 @@ public final class BREADStatistics {
 
     }
 
+    /**
+     * A structure of the statistics of noise.
+     */
     public static final class NoiseStatistics {
 
         public Set<Point> raw;
@@ -107,6 +119,9 @@ public final class BREADStatistics {
 
     }
 
+    /**
+     * A structure of the statistics of a world.
+     */
     public static final class WorldStatistics {
 
         public List<ClusterStatistics> clusters;
