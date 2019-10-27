@@ -31,6 +31,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * A process for analysing collected redstone data.
+ */
 public final class BREADAnalyser {
 
     public static final int FAST_COLLECTING_TICKS = 300;
@@ -41,6 +44,13 @@ public final class BREADAnalyser {
     private volatile ExecutorService threadPool;
     private CompletableFuture<Void> future;
 
+    /**
+     * Initialize a process for analysing collected redstone data.
+     *
+     * @param points        Redstone event data
+     * @param fast          Fast mode of BREAD
+     * @param asyncCallback Async callback for transferring the result
+     */
     public BREADAnalyser(Map<UUID, Set<Point>> points, boolean fast,
                          Consumer<Optional<Map<UUID, WorldStatistics>>> asyncCallback) {
         this.threadPool = Executors.newFixedThreadPool(THREADS);
@@ -70,32 +80,59 @@ public final class BREADAnalyser {
         this.future = mapFuture.thenApply(Optional::of).acceptEither(timeout(TIMEOUT_MINUTES, TimeUnit.MINUTES),
                 result -> {
                     this.threadPool.shutdownNow();
-            asyncCallback.accept(result);
-        });
+                    asyncCallback.accept(result);
+                });
     }
 
+    /**
+     * Return true if this process is running.
+     * @return true if running
+     */
     public boolean isRunning() {
         return !this.future.isDone();
     }
 
+    /**
+     * Force to stop this process.
+     */
     public void forceStop() {
         if (!isRunning()) return;
         this.future.cancel(false);
         this.threadPool.shutdownNow();
     }
 
+    /**
+     * Transform a list of CompletableFuture to CompletableFuture of the list.
+     * @param futureList List of CompletableFuture to transform
+     * @param <E> Element type
+     * @return CompletableFuture of the list
+     */
     private <E> CompletableFuture<List<E>> futureList2ListFuture(List<CompletableFuture<E>> futureList) {
         return CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).
                 thenApply(aVoid -> futureList.stream().
                         map(CompletableFuture::join).collect(Collectors.toList()));
     }
 
+    /**
+     * Transform a map of CompletableFuture to CompletableFuture of the map.
+     * @param futureMap Map of CompletableFuture to transform
+     * @param <K> Key type
+     * @param <V> Value type
+     * @return CompletableFuture of the map
+     */
     private <K, V> CompletableFuture<Map<K, V>> futureMap2MapFuture(Map<K, CompletableFuture<V>> futureMap) {
         return CompletableFuture.allOf(futureMap.values().toArray(new CompletableFuture[0])).
                 thenApply(aVoid -> futureMap.entrySet().parallelStream().
                         collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().join())));
     }
 
+    /**
+     * Create a CompletableFuture that just waits and then returns an empty Optional.
+     * @param timeout Timeout time
+     * @param unit Timeout time unit
+     * @param <T> Optional type
+     * @return An empty optional
+     */
     private <T> CompletableFuture<Optional<T>> timeout(long timeout, TimeUnit unit) {
         return CompletableFuture.supplyAsync(() -> {
             try {
