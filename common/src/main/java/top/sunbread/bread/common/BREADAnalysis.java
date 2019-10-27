@@ -43,6 +43,7 @@ final class BREADAnalysis {
 
     /**
      * Analyse given points and divide them to clusters and noise.
+     * This uses parallel DBSCAN.
      *
      * @param points Set of points to analyse
      * @param fast   Fast mode of BREAD
