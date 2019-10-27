@@ -32,14 +32,23 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * A util class for analysing game data.
+ */
 final class BREADAnalysis {
 
     private static final int EPSILON = 16;
     private static final int MAX_WEIGHT_SUM_FAST = 25; // For noise
     private static final int MAX_WEIGHT_SUM = 100; // For noise
 
+    /**
+     * Analyse given points and divide them to clusters and noise.
+     *
+     * @param points Set of points to analyse
+     * @param fast   Fast mode of BREAD
+     * @return A list of clusters and noise, the last element of the list is noise (guarantee existence)
+     */
     static List<Set<Point>> clusterAnalysis(Set<Point> points, boolean fast) {
-        // Parallel DBSCAN
         ForkJoinPool analysisThreadPool = new ForkJoinPool();
         List<Set<Point>> outerResult = analysisThreadPool.submit(() -> {
             // Wrapping points
@@ -119,6 +128,13 @@ final class BREADAnalysis {
         return outerResult;
     }
 
+    /**
+     * Count a cluster and generate its statistics.
+     *
+     * @param cluster Cluster to count
+     * @param fast    Fast mode of BREAD
+     * @return Statistics of the given cluster
+     */
     static ClusterStatistics countCluster(Set<Point> cluster, boolean fast) {
         int totalEvents = cluster.parallelStream().mapToInt(point -> point.w).sum();
         double eventsPerTick = (double) totalEvents /
@@ -142,12 +158,22 @@ final class BREADAnalysis {
                 eventCentroidLocation, distanceFromCentroid);
     }
 
+    /**
+     * Count noise and generate its statistics.
+     *
+     * @param noise Noise to count
+     * @param fast  Fast mode of BREAD
+     * @return Statistics of the given noise
+     */
     static NoiseStatistics countNoise(Set<Point> noise, boolean fast) {
         return new NoiseStatistics(noise, (double) noise.parallelStream().
                 mapToInt(point -> point.w).sum() /
                 (fast ? BREADAnalyser.FAST_COLLECTING_TICKS : BREADAnalyser.COLLECTING_TICKS));
     }
 
+    /**
+     * A point wrapper.
+     */
     private static final class PointData {
 
         Point point;
@@ -177,16 +203,36 @@ final class BREADAnalysis {
 
     }
 
+    /**
+     * An implementation of Range Tree.
+     * It's used to get neighbor points of a specific point efficiently.
+     *
+     * @param <P> Point type
+     * @see <a href="https://en.wikipedia.org/wiki/Range_tree">Wikipedia</a>
+     */
     private static final class RangeTree<P> {
 
         private List<Function<P, Integer>> componentFilters;
         private Node<P> tree;
 
+        /**
+         * Construct a Range Tree.
+         *
+         * @param points           Points as elements
+         * @param componentFilters A list of functions to get components of a point
+         */
         RangeTree(Set<P> points, List<Function<P, Integer>> componentFilters) {
             this.componentFilters = new ArrayList<>(componentFilters);
             this.tree = makeTree(0, points);
         }
 
+        /**
+         * Get neighbor points of a specific point, using Manhattan distance.
+         *
+         * @param centerPoint Specific point
+         * @param epsilon     Range (inclusive)
+         * @return Neighbor points of the specific point (including center point if it's in the tree)
+         */
         Set<P> getNeighborPointsManhattan(P centerPoint, int epsilon) {
             int realEps = Math.abs(epsilon);
             List<Integer> from = this.componentFilters.stream().map(f -> f.apply(centerPoint)).
@@ -200,12 +246,22 @@ final class BREADAnalysis {
                     collect(Collectors.toSet());
         }
 
+        /**
+         * Remove all elements from this Range Tree.
+         */
         void clear() {
             this.componentFilters.clear();
             clearTree(this.tree);
             this.tree = new Node<>((P) null);
         }
 
+        /**
+         * A recursive function to make Range Tree.
+         *
+         * @param depth  Depth of the node
+         * @param points Elements of the node
+         * @return Made point
+         */
         private Node<P> makeTree(int depth, Set<P> points) {
             if (depth == this.componentFilters.size()) {
                 if (points.size() == 1)
@@ -229,12 +285,24 @@ final class BREADAnalysis {
                             }, TreeMap::new)));
         }
 
+        /**
+         * A recursive function to clear Range Tree.
+         *
+         * @param tree Node that will be removed
+         */
         private void clearTree(Node<P> tree) {
             if (tree.isLeaf()) return;
             tree.getBST().values().parallelStream().unordered().forEach(this::clearTree);
             tree.getBST().clear();
         }
 
+        /**
+         * Get all points in a rectangle range (inclusive).
+         *
+         * @param from Vertex coordinates
+         * @param to   Diagonal vertex coordinates
+         * @return All points in a rectangle range (inclusive)
+         */
         private Set<P> queryInclusiveRange(List<Integer> from, List<Integer> to) {
             if (from.size() != to.size() || from.size() != this.componentFilters.size())
                 throw new IllegalArgumentException();
@@ -274,6 +342,9 @@ final class BREADAnalysis {
             return result;
         }
 
+        /**
+         * A wrapper that wraps trees and points.
+         */
         private static final class Node<P> {
 
             private UUID uuid;
@@ -317,6 +388,13 @@ final class BREADAnalysis {
 
     }
 
+    /**
+     * An implementation of a derivative of Disjoint-Set.
+     * It's used to union elements efficiently and collect the result.
+     *
+     * @param <E> Element type
+     * @see <a href="https://en.wikipedia.org/wiki/Disjoint-set_data_structure">Wikipedia</a>
+     */
     private static final class UnionCollect<E> {
 
         private List<E> nodes;
@@ -379,6 +457,9 @@ final class BREADAnalysis {
 
     }
 
+    /**
+     * The attribute of PointData.
+     */
     private enum PointAttribute {NONE, REACHABLE, CORE}
 
 }
