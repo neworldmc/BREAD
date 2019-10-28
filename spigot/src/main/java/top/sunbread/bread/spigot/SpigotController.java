@@ -58,36 +58,37 @@ final class SpigotController {
         return this.lastResult;
     }
 
-    void runBREAD(CommandSender sender, boolean fast) {
+    void runBREAD(CommandSender sender, int collectionPeriodMultiplier) {
         if (this.status != ControllerStatus.IDLE || sender == null) return;
         this.currentOperator = new Operator(sender);
         this.status = ControllerStatus.COLLECTING;
         this.lastResult = null;
         notifyOperator("BREAD is collecting redstone events...");
         notifyOperator("This process will take " +
-                (fast ? BREADAnalyser.FAST_COLLECTING_TICKS : BREADAnalyser.COLLECTING_TICKS) +
-                " game-ticks (" + (fast ? "15 seconds" : "a minute") + ").");
+                BREADAnalyser.COLLECTING_TICKS_BASE * collectionPeriodMultiplier + " game-ticks (" +
+                BREADAnalyser.COLLECTING_TICKS_BASE / 20 * collectionPeriodMultiplier + " seconds).");
         this.scheduler = new SpigotCollectorScheduler(this.plugin, points -> {
             this.status = ControllerStatus.ANALYSING;
             notifyOperator("BREAD is analysing the data collected in the previous step...");
             notifyOperator("This process will take a while. Sit back and relax.");
             this.scheduler = null;
-            this.analyser = new BREADAnalyser(points, fast, result -> Bukkit.getScheduler().runTask(this.plugin, () -> {
-                this.status = ControllerStatus.IDLE;
-                if (result.isPresent()) {
-                    this.lastResult = result.get();
-                    notifyOperator("BREAD is completed!");
-                    notifyOperator("Use sub-command " + ChatColor.GREEN +
-                            "status" + ChatColor.RESET +
-                            " to view the diagnosis.");
-                } else {
-                    this.lastResult = null;
-                    notifyOperator("BREAD failed! Timed out analysing.");
-                }
-                this.analyser = null;
-                this.currentOperator = null;
-            }));
-        }, fast);
+            this.analyser = new BREADAnalyser(points, collectionPeriodMultiplier,
+                    result -> Bukkit.getScheduler().runTask(this.plugin, () -> {
+                        this.status = ControllerStatus.IDLE;
+                        if (result.isPresent()) {
+                            this.lastResult = result.get();
+                            notifyOperator("BREAD is completed!");
+                            notifyOperator("Use sub-command " + ChatColor.GREEN +
+                                    "status" + ChatColor.RESET +
+                                    " to view the diagnosis.");
+                        } else {
+                            this.lastResult = null;
+                            notifyOperator("BREAD failed! Timed out analysing.");
+                        }
+                        this.analyser = null;
+                        this.currentOperator = null;
+                    }));
+        }, BREADAnalyser.COLLECTING_TICKS_BASE * collectionPeriodMultiplier);
     }
 
     void stopBREAD(CommandSender sender) {

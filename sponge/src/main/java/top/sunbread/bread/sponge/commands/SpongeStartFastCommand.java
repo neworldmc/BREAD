@@ -28,6 +28,8 @@ import top.sunbread.bread.sponge.controller.SpongeController;
 
 public final class SpongeStartFastCommand implements CommandExecutor {
 
+    private static final int FAST_COLLECTION_PERIOD_MULTIPLIER = 1; // 15 seconds
+
     private SpongeController controller;
 
     public SpongeStartFastCommand(SpongeController controller) {
@@ -40,7 +42,7 @@ public final class SpongeStartFastCommand implements CommandExecutor {
             src.sendMessage(Text.of(TextColors.YELLOW, "Sub-command ",
                     TextColors.GREEN, "fast",
                     TextColors.YELLOW, " executed successfully!"));
-            this.controller.startBREAD(src, true);
+            this.controller.startBREAD(src, FAST_COLLECTION_PERIOD_MULTIPLIER);
             return CommandResult.success();
         } else {
             if (this.controller.getInfo().getCurrentOperatorName().isPresent())

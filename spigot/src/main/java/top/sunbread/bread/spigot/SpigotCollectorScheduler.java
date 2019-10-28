@@ -20,7 +20,6 @@ package top.sunbread.bread.spigot;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import top.sunbread.bread.common.BREADAnalyser;
 import top.sunbread.bread.common.BREADStatistics;
 
 import java.util.Map;
@@ -34,7 +33,7 @@ final class SpigotCollectorScheduler {
     private BukkitTask task;
 
     SpigotCollectorScheduler(JavaPlugin plugin, Consumer<Map<UUID, Set<BREADStatistics.Point>>> callback,
-                             boolean fast) {
+                             int collectionPeriod) {
         this.collector = new SpigotCollector(plugin);
         this.collector.start();
         this.task = new BukkitRunnable() {
@@ -44,7 +43,7 @@ final class SpigotCollectorScheduler {
                 callback.accept(SpigotCollectorScheduler.this.collector.getPoints());
                 SpigotCollectorScheduler.this.collector.clear();
             }
-        }.runTaskLater(plugin, fast ? BREADAnalyser.FAST_COLLECTING_TICKS : BREADAnalyser.COLLECTING_TICKS);
+        }.runTaskLater(plugin, collectionPeriod);
     }
 
     boolean isRunning() {

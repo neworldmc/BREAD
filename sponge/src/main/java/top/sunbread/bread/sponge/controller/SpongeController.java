@@ -53,10 +53,10 @@ public final class SpongeController {
         return this.info;
     }
 
-    public void startBREAD(CommandSource source, boolean fast) {
+    public void startBREAD(CommandSource source, int collectionPeriodMultiplier) {
         if (this.info.getStatus() != ControllerInfo.ControllerStatus.IDLE || source == null)
             return;
-        collectingStage(source, fast);
+        collectingStage(source, collectionPeriodMultiplier);
     }
 
     public void stopBREAD(CommandSource source) {
@@ -85,29 +85,32 @@ public final class SpongeController {
         return Optional.of(this.game.getServer().getWorld(worldUID).get().getName());
     }
 
-    private void collectingStage(CommandSource source, boolean fast) {
+    private void collectingStage(CommandSource source, int collectionPeriodMultiplier) {
         this.info.setStatus(ControllerInfo.ControllerStatus.COLLECTING);
         this.info.setCurrentOperator(source);
         this.info.setLastResult(null);
         notifyOperator(Text.of(TextColors.YELLOW, "BREAD is collecting redstone events..."));
         notifyOperator(Text.of(TextColors.YELLOW, "This process will take " +
-                (fast ? BREADAnalyser.FAST_COLLECTING_TICKS : BREADAnalyser.COLLECTING_TICKS) +
-                " game-ticks (" + (fast ? "15 seconds" : "a minute") + ")."));
-        this.collector = new SpongeCollector(this.game, this.plugin, fast, points -> analysingStage(points, fast));
+                BREADAnalyser.COLLECTING_TICKS_BASE * collectionPeriodMultiplier + " game-ticks (" +
+                BREADAnalyser.COLLECTING_TICKS_BASE / 20 * collectionPeriodMultiplier + " seconds)."));
+        this.collector = new SpongeCollector(this.game, this.plugin,
+                BREADAnalyser.COLLECTING_TICKS_BASE * collectionPeriodMultiplier,
+                points -> analysingStage(points, collectionPeriodMultiplier));
     }
 
-    private void analysingStage(Map<UUID, Set<BREADStatistics.Point>> points, boolean fast) {
+    private void analysingStage(Map<UUID, Set<BREADStatistics.Point>> points, int collectionPeriodMultiplier) {
         this.collector = null;
         this.info.setStatus(ControllerInfo.ControllerStatus.ANALYSING);
         notifyOperator(Text.of(TextColors.YELLOW,
                 "BREAD is analysing the data collected in the previous step..."));
         notifyOperator(Text.of(TextColors.YELLOW, "This process will take a while. Sit back and relax."));
-        this.analyser = new BREADAnalyser(points, fast, statistics -> Task.builder().execute(() -> {
-            if (statistics.isPresent())
-                finalStage(statistics.get());
-            else
-                finalStageFailure();
-        }).submit(this.plugin.getInstance().get()));
+        this.analyser = new BREADAnalyser(points, collectionPeriodMultiplier,
+                statistics -> Task.builder().execute(() -> {
+                    if (statistics.isPresent())
+                        finalStage(statistics.get());
+                    else
+                        finalStageFailure();
+                }).submit(this.plugin.getInstance().get()));
     }
 
     private void finalStage(Map<UUID, BREADStatistics.WorldStatistics> statistics) {
