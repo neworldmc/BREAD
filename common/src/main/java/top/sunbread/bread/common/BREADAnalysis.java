@@ -402,8 +402,7 @@ final class BREADAnalysis {
         private int[] parents;
 
         UnionCollect(Set<E> elements) {
-            this.nodes =
-                    elements.parallelStream().unordered().distinct().collect(Collectors.toCollection(ArrayList::new));
+            this.nodes = new ArrayList<>(elements);
             this.parents = IntStream.range(0, this.nodes.size()).toArray();
         }
 
