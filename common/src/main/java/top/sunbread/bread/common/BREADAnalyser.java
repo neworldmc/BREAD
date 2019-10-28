@@ -80,11 +80,12 @@ public final class BREADAnalyser {
                 futureMap2MapFuture(points.entrySet().parallelStream().
                         collect(Collectors.toMap(Map.Entry::getKey,
                                 entry -> worldStatsAnalysis.apply(entry.getValue()))));
-        this.future = mapFuture.thenApply(Optional::of).acceptEither(timeout(TIMEOUT_MINUTES, TimeUnit.MINUTES),
-                result -> {
-                    this.threadPool.shutdownNow();
-                    asyncCallback.accept(result);
-                });
+        this.future = mapFuture.thenApply(Optional::of).
+                acceptEither(timeout(TIMEOUT_MINUTES, TimeUnit.MINUTES, Optional.empty()),
+                        result -> {
+                            this.threadPool.shutdownNow();
+                            asyncCallback.accept(result);
+                        });
     }
 
     /**
@@ -133,20 +134,25 @@ public final class BREADAnalyser {
     }
 
     /**
-     * Create a CompletableFuture that just waits and then returns an empty Optional.
+     * Create a CompletableFuture that just waits and then returns the specific value.
+     * <br/>
+     * The idiom of this function is:
+     * <br/>
+     * {@code [a CompletableFuture].acceptEither(timeout([timeout], [unit], [then]), [action]);}
      *
      * @param timeout Timeout time
      * @param unit    Timeout time unit
-     * @param <T>     Optional type
+     * @param then    Value to be returned if timed out
+     * @param <T>     Value type
      * @return An empty optional
      */
-    private <T> CompletableFuture<Optional<T>> timeout(long timeout, TimeUnit unit) {
+    private <T> CompletableFuture<T> timeout(long timeout, TimeUnit unit, T then) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Thread.sleep(unit.toMillis(timeout));
             } catch (InterruptedException ignored) {
             }
-            return Optional.empty();
+            return then;
         });
     }
 
