@@ -37,8 +37,8 @@ import java.util.stream.Collectors;
 public final class BREADAnalyser {
 
     public static final int COLLECTING_TICKS_BASE = 300;
-    public static final int THREADS = 16;
-    public static final int TIMEOUT_MINUTES = 5;
+    private static final int THREADS = 16;
+    private static final int TIMEOUT_MINUTES = 5;
 
     private volatile ExecutorService threadPool;
     private CompletableFuture<Void> future;
