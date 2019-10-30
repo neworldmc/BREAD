@@ -1,4 +1,6 @@
 # BREAD
+[![CircleCI](https://circleci.com/gh/neworldmc/BREAD.svg?style=svg)](https://circleci.com/gh/neworldmc/BREAD)
+
 Block Redstone Event Analyse and Diagnose
 
 ## Commands
