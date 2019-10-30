@@ -20,9 +20,9 @@ package top.sunbread.bread.sponge.controller;
 import com.flowpowered.math.vector.Vector3i;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.block.BlockState;
+import org.spongepowered.api.block.trait.BlockTrait;
 import org.spongepowered.api.data.Transaction;
-import org.spongepowered.api.data.manipulator.immutable.block.ImmutablePoweredData;
-import org.spongepowered.api.data.manipulator.immutable.block.ImmutableRedstonePoweredData;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
@@ -32,10 +32,7 @@ import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 import top.sunbread.bread.common.BREADStatistics;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -102,28 +99,55 @@ final class SpongeCollector {
         @Listener(order = Order.LAST)
         public void onBlockChange(ChangeBlockEvent.Modify event) {
             for (Transaction<BlockSnapshot> transaction : event.getTransactions())
-                if (transaction.isValid()) {
-                    transaction.getDefault().get(ImmutablePoweredData.class).ifPresent(ignored -> {
-                        boolean originalPowered =
-                                transaction.getOriginal().get(ImmutablePoweredData.class).get().
-                                        powered().get();
-                        boolean finalPowered =
-                                transaction.getFinal().get(ImmutablePoweredData.class).get().
-                                        powered().get();
-                        if (originalPowered != finalPowered)
-                            transaction.getDefault().getLocation().ifPresent(SpongeCollector.this::addPoint);
-                    });
-                    transaction.getDefault().get(ImmutableRedstonePoweredData.class).ifPresent(ignored -> {
-                        int originalPower =
-                                transaction.getOriginal().get(ImmutableRedstonePoweredData.class).get().
-                                        power().get();
-                        int finalPower =
-                                transaction.getFinal().get(ImmutableRedstonePoweredData.class).get().
-                                        power().get();
-                        if (originalPower != finalPower)
-                            transaction.getDefault().getLocation().ifPresent(SpongeCollector.this::addPoint);
-                    });
-                }
+                if (transaction.isValid() && transaction.getDefault().getLocation().isPresent() &&
+                        isTraitValueDifferent(transaction.getOriginal().getState(),
+                                transaction.getFinal().getState()))
+                    addPoint(transaction.getDefault().getLocation().get());
+        }
+
+        private boolean isTraitValueDifferent(BlockState blockState1, BlockState blockState2) {
+            return isPoweredTraitValueDifferent(blockState1, blockState2) ||
+                    isPowerTraitValueDifferent(blockState1, blockState2);
+        }
+
+        private boolean isPoweredTraitValueDifferent(BlockState blockState1, BlockState blockState2) {
+            Optional<BlockTrait<Boolean>> poweredTrait1 = getPoweredTrait(blockState1);
+            Optional<BlockTrait<Boolean>> poweredTrait2 = getPoweredTrait(blockState2);
+            if (!poweredTrait1.isPresent() || !poweredTrait2.isPresent()) return false;
+            Optional<Boolean> poweredTraitValue1 = blockState1.getTraitValue(poweredTrait1.get());
+            Optional<Boolean> poweredTraitValue2 = blockState2.getTraitValue(poweredTrait2.get());
+            if (!poweredTraitValue1.isPresent() || !poweredTraitValue2.isPresent()) return false;
+            return !poweredTraitValue1.get().equals(poweredTraitValue2.get());
+        }
+
+        private Optional<BlockTrait<Boolean>> getPoweredTrait(BlockState blockState) {
+            Optional<BlockTrait<?>> optionalTrait = blockState.getType().getTrait("powered");
+            if (!optionalTrait.isPresent()) return Optional.empty();
+            BlockTrait<?> genericTrait = optionalTrait.get();
+            if (!genericTrait.getValueClass().equals(Boolean.class)) return Optional.empty();
+            @SuppressWarnings("unchecked")
+            BlockTrait<Boolean> trait = (BlockTrait<Boolean>) genericTrait;
+            return Optional.of(trait);
+        }
+
+        private boolean isPowerTraitValueDifferent(BlockState blockState1, BlockState blockState2) {
+            Optional<BlockTrait<Integer>> powerTrait1 = getPowerTrait(blockState1);
+            Optional<BlockTrait<Integer>> powerTrait2 = getPowerTrait(blockState2);
+            if (!powerTrait1.isPresent() || !powerTrait2.isPresent()) return false;
+            Optional<Integer> powerTraitValue1 = blockState1.getTraitValue(powerTrait1.get());
+            Optional<Integer> powerTraitValue2 = blockState2.getTraitValue(powerTrait2.get());
+            if (!powerTraitValue1.isPresent() || !powerTraitValue2.isPresent()) return false;
+            return !powerTraitValue1.get().equals(powerTraitValue2.get());
+        }
+
+        private Optional<BlockTrait<Integer>> getPowerTrait(BlockState blockState) {
+            Optional<BlockTrait<?>> optionalTrait = blockState.getType().getTrait("power");
+            if (!optionalTrait.isPresent()) return Optional.empty();
+            BlockTrait<?> genericTrait = optionalTrait.get();
+            if (!genericTrait.getValueClass().equals(Integer.class)) return Optional.empty();
+            @SuppressWarnings("unchecked")
+            BlockTrait<Integer> trait = (BlockTrait<Integer>) genericTrait;
+            return Optional.of(trait);
         }
 
     }
