@@ -4,7 +4,7 @@ Block Redstone Event Analyse and Diagnose
 ## Commands
 The base command is `/bread`.
 
-- `/bread start` (Sponge) or `/bread run` (Spigot) - Start BREAD
+- `/bread start` - Start BREAD
 - `/bread fast` - Start fast BREAD
 - `/bread stop` - Stop running BREAD
 - `/bread status` - View status of BREAD, and last BREAD result if it exists
