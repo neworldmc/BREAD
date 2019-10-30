@@ -38,6 +38,8 @@
     </properties>
 
     <build>
+        <finalName>${project.name}</finalName>
+
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
