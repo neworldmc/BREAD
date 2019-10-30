@@ -37,6 +37,9 @@ import java.util.stream.Stream;
 
 final class SpigotCommand implements CommandExecutor, TabCompleter {
 
+    private static final int NORMAL_COLLECTION_PERIOD_MULTIPLIER = 4; // 60 seconds
+    private static final int FAST_COLLECTION_PERIOD_MULTIPLIER = 1; // 15 seconds
+
     private SpigotController controller;
 
     SpigotCommand(SpigotController controller) {
@@ -61,7 +64,7 @@ final class SpigotCommand implements CommandExecutor, TabCompleter {
                         sender.sendMessage(ChatColor.YELLOW + "Sub-command " +
                                 ChatColor.GREEN + "run" +
                                 ChatColor.YELLOW + " executed successfully!");
-                        this.controller.runBREAD(sender, false);
+                        this.controller.runBREAD(sender, NORMAL_COLLECTION_PERIOD_MULTIPLIER);
                     } else sender.sendMessage(ChatColor.RED + "There is already a BREAD run by " +
                             this.controller.getCurrentOperator().getName() + ".");
                     break;
@@ -70,7 +73,7 @@ final class SpigotCommand implements CommandExecutor, TabCompleter {
                         sender.sendMessage(ChatColor.YELLOW + "Sub-command " +
                                 ChatColor.GREEN + "fast" +
                                 ChatColor.YELLOW + " executed successfully!");
-                        this.controller.runBREAD(sender, true);
+                        this.controller.runBREAD(sender, FAST_COLLECTION_PERIOD_MULTIPLIER);
                     } else sender.sendMessage(ChatColor.RED + "There is already a BREAD run by " +
                             this.controller.getCurrentOperator().getName() + ".");
                     break;

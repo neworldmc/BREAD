@@ -30,7 +30,6 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
-import top.sunbread.bread.common.BREADAnalyser;
 import top.sunbread.bread.common.BREADStatistics;
 
 import java.util.HashMap;
@@ -49,7 +48,7 @@ final class SpongeCollector {
     private Task task;
     private boolean running;
 
-    SpongeCollector(Game game, PluginContainer plugin, boolean fast,
+    SpongeCollector(Game game, PluginContainer plugin, int collectionPeriod,
                     Consumer<Map<UUID, Set<BREADStatistics.Point>>> callback) {
         this.game = game;
         this.plugin = plugin;
@@ -61,8 +60,7 @@ final class SpongeCollector {
             this.game.getEventManager().unregisterListeners(this.listener);
             callback.accept(formatPoints(this.points));
             this.points.clear();
-        }).delayTicks(fast ? BREADAnalyser.FAST_COLLECTING_TICKS : BREADAnalyser.COLLECTING_TICKS).
-                submit(this.plugin.getInstance().get());
+        }).delayTicks(collectionPeriod).submit(this.plugin.getInstance().get());
         this.running = true;
     }
 

@@ -29,7 +29,8 @@ class BREADAnalysisTest {
     void clusterAnalysisLostOrDuplicateTest() {
         for (int i = 1; i <= 100; ++i) {
             Set<BREADStatistics.Point> points = getRandomPoints();
-            List<Set<BREADStatistics.Point>> result = BREADAnalysis.clusterAnalysis(points, i % 2 == 0);
+            List<Set<BREADStatistics.Point>> result =
+                    BREADAnalysis.clusterAnalysis(points, i % 2 == 0 ? 1 : 4);
             assertEquals(points.size(), result.parallelStream().
                             mapToLong(Set::size).sum(),
                     "Round #" + i);

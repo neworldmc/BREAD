@@ -36,10 +36,9 @@ import java.util.stream.Collectors;
  */
 public final class BREADAnalyser {
 
-    public static final int FAST_COLLECTING_TICKS = 300;
-    public static final int COLLECTING_TICKS = 1200;
-    public static final int THREADS = 16;
-    public static final int TIMEOUT_MINUTES = 5;
+    public static final int COLLECTING_TICKS_BASE = 300;
+    private static final int THREADS = 16;
+    private static final int TIMEOUT_MINUTES = 5;
 
     private volatile ExecutorService threadPool;
     private CompletableFuture<Void> future;
@@ -47,19 +46,23 @@ public final class BREADAnalyser {
     /**
      * Initialize a process for analysing collected redstone data.
      *
-     * @param points        Redstone event data
-     * @param fast          Fast mode of BREAD
-     * @param asyncCallback Async callback for transferring the result
+     * @param points                     Redstone event data
+     * @param collectionPeriodMultiplier Collection period multiplier, must be a positive integer,
+     *                                   the base value of collection period is 15 seconds (300 ticks)
+     * @param asyncCallback              Async callback for transferring the result
      */
-    public BREADAnalyser(Map<UUID, Set<Point>> points, boolean fast,
+    public BREADAnalyser(Map<UUID, Set<Point>> points, int collectionPeriodMultiplier,
                          Consumer<Optional<Map<UUID, WorldStatistics>>> asyncCallback) {
         this.threadPool = Executors.newFixedThreadPool(THREADS);
         Function<Set<Point>, CompletableFuture<List<Set<Point>>>> clusterAnalysisProvider =
-                p -> CompletableFuture.supplyAsync(() -> BREADAnalysis.clusterAnalysis(p, fast), this.threadPool);
+                p -> CompletableFuture.supplyAsync(() ->
+                        BREADAnalysis.clusterAnalysis(p, collectionPeriodMultiplier), this.threadPool);
         Function<Set<Point>, CompletableFuture<ClusterStatistics>> countClusterProvider =
-                c -> CompletableFuture.supplyAsync(() -> BREADAnalysis.countCluster(c, fast), this.threadPool);
+                c -> CompletableFuture.supplyAsync(() -> BREADAnalysis.countCluster(c,
+                        COLLECTING_TICKS_BASE * collectionPeriodMultiplier), this.threadPool);
         Function<Set<Point>, CompletableFuture<NoiseStatistics>> countNoiseProvider =
-                n -> CompletableFuture.supplyAsync(() -> BREADAnalysis.countNoise(n, fast), this.threadPool);
+                n -> CompletableFuture.supplyAsync(() -> BREADAnalysis.countNoise(n,
+                        COLLECTING_TICKS_BASE * collectionPeriodMultiplier), this.threadPool);
         Function<Set<Point>, CompletableFuture<WorldStatistics>> worldStatsAnalysis =
                 p -> clusterAnalysisProvider.apply(p).thenCompose(analysis -> {
                     List<Set<Point>> clusterList = analysis.subList(0, analysis.size() - 1);
@@ -77,15 +80,17 @@ public final class BREADAnalyser {
                 futureMap2MapFuture(points.entrySet().parallelStream().
                         collect(Collectors.toMap(Map.Entry::getKey,
                                 entry -> worldStatsAnalysis.apply(entry.getValue()))));
-        this.future = mapFuture.thenApply(Optional::of).acceptEither(timeout(TIMEOUT_MINUTES, TimeUnit.MINUTES),
-                result -> {
-                    this.threadPool.shutdownNow();
-                    asyncCallback.accept(result);
-                });
+        this.future = mapFuture.thenApply(Optional::of).
+                acceptEither(timeout(TIMEOUT_MINUTES, TimeUnit.MINUTES, Optional.empty()),
+                        result -> {
+                            this.threadPool.shutdownNow();
+                            asyncCallback.accept(result);
+                        });
     }
 
     /**
      * Return true if this process is running.
+     *
      * @return true if running
      */
     public boolean isRunning() {
@@ -103,8 +108,9 @@ public final class BREADAnalyser {
 
     /**
      * Transform a list of CompletableFuture to CompletableFuture of the list.
+     *
      * @param futureList List of CompletableFuture to transform
-     * @param <E> Element type
+     * @param <E>        Element type
      * @return CompletableFuture of the list
      */
     private <E> CompletableFuture<List<E>> futureList2ListFuture(List<CompletableFuture<E>> futureList) {
@@ -115,9 +121,10 @@ public final class BREADAnalyser {
 
     /**
      * Transform a map of CompletableFuture to CompletableFuture of the map.
+     *
      * @param futureMap Map of CompletableFuture to transform
-     * @param <K> Key type
-     * @param <V> Value type
+     * @param <K>       Key type
+     * @param <V>       Value type
      * @return CompletableFuture of the map
      */
     private <K, V> CompletableFuture<Map<K, V>> futureMap2MapFuture(Map<K, CompletableFuture<V>> futureMap) {
@@ -127,19 +134,25 @@ public final class BREADAnalyser {
     }
 
     /**
-     * Create a CompletableFuture that just waits and then returns an empty Optional.
+     * Create a CompletableFuture that just waits and then returns the specific value.
+     * <br/>
+     * The idiom of this function is:
+     * <br/>
+     * {@code [a CompletableFuture].acceptEither(timeout([timeout], [unit], [then]), [action]);}
+     *
      * @param timeout Timeout time
-     * @param unit Timeout time unit
-     * @param <T> Optional type
+     * @param unit    Timeout time unit
+     * @param then    Value to be returned if timed out
+     * @param <T>     Value type
      * @return An empty optional
      */
-    private <T> CompletableFuture<Optional<T>> timeout(long timeout, TimeUnit unit) {
+    private <T> CompletableFuture<T> timeout(long timeout, TimeUnit unit, T then) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Thread.sleep(unit.toMillis(timeout));
             } catch (InterruptedException ignored) {
             }
-            return Optional.empty();
+            return then;
         });
     }
 

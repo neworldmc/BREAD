@@ -38,18 +38,18 @@ import java.util.stream.Stream;
 final class BREADAnalysis {
 
     private static final int EPSILON = 16;
-    private static final int MAX_WEIGHT_SUM_FAST = 25; // For noise
-    private static final int MAX_WEIGHT_SUM = 100; // For noise
+    private static final int MAX_WEIGHT_SUM_BASE = 25; // For noise
 
     /**
      * Analyse given points and divide them to clusters and noise.
      * This uses parallel DBSCAN.
      *
-     * @param points Set of points to analyse
-     * @param fast   Fast mode of BREAD
+     * @param points              Set of points to analyse
+     * @param frequencyMultiplier Point frequency multiplier, must be a positive integer,
+     *                            should be equal to collectionPeriodMultiplier
      * @return A list of clusters and noise, the last element of the list is noise (guarantee existence)
      */
-    static List<Set<Point>> clusterAnalysis(Set<Point> points, boolean fast) {
+    static List<Set<Point>> clusterAnalysis(Set<Point> points, int frequencyMultiplier) {
         ForkJoinPool analysisThreadPool = new ForkJoinPool();
         List<Set<Point>> outerResult = analysisThreadPool.submit(() -> {
             // Wrapping points
@@ -64,7 +64,7 @@ final class BREADAnalysis {
             pointsData.parallelStream().unordered().filter(pointData ->
                     rangeTree.getNeighborPointsManhattan(pointData, EPSILON).parallelStream().unordered().
                             mapToInt(neighborPointData -> neighborPointData.point.w).sum() >
-                            (fast ? MAX_WEIGHT_SUM_FAST : MAX_WEIGHT_SUM)).
+                            MAX_WEIGHT_SUM_BASE * frequencyMultiplier).
                     forEach(corePointData -> corePointData.pointAttribute = PointAttribute.CORE);
 
             // Collecting core points
@@ -132,14 +132,13 @@ final class BREADAnalysis {
     /**
      * Count a cluster and generate its statistics.
      *
-     * @param cluster Cluster to count
-     * @param fast    Fast mode of BREAD
+     * @param cluster          Cluster to count
+     * @param collectionPeriod Collection period, the unit is ticks, must be a positive integer
      * @return Statistics of the given cluster
      */
-    static ClusterStatistics countCluster(Set<Point> cluster, boolean fast) {
+    static ClusterStatistics countCluster(Set<Point> cluster, int collectionPeriod) {
         int totalEvents = cluster.parallelStream().mapToInt(point -> point.w).sum();
-        double eventsPerTick = (double) totalEvents /
-                (fast ? BREADAnalyser.FAST_COLLECTING_TICKS : BREADAnalyser.COLLECTING_TICKS);
+        double eventsPerTick = (double) totalEvents / collectionPeriod;
         double[] eventCentroidLocation = cluster.parallelStream().
                 map(point -> Arrays.asList(BigInteger.valueOf((long) point.x * point.w),
                         BigInteger.valueOf((long) point.y * point.w),
@@ -162,14 +161,13 @@ final class BREADAnalysis {
     /**
      * Count noise and generate its statistics.
      *
-     * @param noise Noise to count
-     * @param fast  Fast mode of BREAD
+     * @param noise            Noise to count
+     * @param collectionPeriod Collection period, the unit is ticks, must be a positive integer
      * @return Statistics of the given noise
      */
-    static NoiseStatistics countNoise(Set<Point> noise, boolean fast) {
+    static NoiseStatistics countNoise(Set<Point> noise, int collectionPeriod) {
         return new NoiseStatistics(noise, (double) noise.parallelStream().
-                mapToInt(point -> point.w).sum() /
-                (fast ? BREADAnalyser.FAST_COLLECTING_TICKS : BREADAnalyser.COLLECTING_TICKS));
+                mapToInt(point -> point.w).sum() / collectionPeriod);
     }
 
     /**
@@ -402,8 +400,7 @@ final class BREADAnalysis {
         private int[] parents;
 
         UnionCollect(Set<E> elements) {
-            this.nodes =
-                    elements.parallelStream().unordered().distinct().collect(Collectors.toCollection(ArrayList::new));
+            this.nodes = new ArrayList<>(elements);
             this.parents = IntStream.range(0, this.nodes.size()).toArray();
         }
 
