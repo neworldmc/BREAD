@@ -1,7 +1,9 @@
 # BREAD
 [![CircleCI](https://circleci.com/gh/neworldmc/BREAD.svg?style=svg)](https://circleci.com/gh/neworldmc/BREAD)
 
-Block Redstone Event Analyse and Diagnose
+*Block Redstone Event Analyse and Diagnose*
+
+BREAD is a plugin for analysing redstone data in the server. With this plugin, you can use a simple command to check most of redstone updates in the whole server at a time, and get a readable analysis report.
 
 ## Commands
 The base command is `/bread`.
