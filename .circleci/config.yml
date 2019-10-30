@@ -1,0 +1,20 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/BREAD
+    docker:
+      - image: circleci/openjdk:8-jdk-stretch
+    steps:
+      - checkout
+      - restore_cache:
+          key: BREAD-m2-cache
+      - run: mvn dependency:go-offline
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: BREAD-m2-cache
+      - run: mvn package
+      - store_artifacts:
+          path: sponge/target/BREAD-Sponge.jar
+      - store_artifacts:
+          path: spigot/target/BREAD-Spigot.jar
