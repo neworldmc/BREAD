@@ -8,12 +8,11 @@ jobs:
       - checkout
       - restore_cache:
           key: BREAD-m2-cache
-      - run: mvn dependency:go-offline
+      - run: mvn clean package
       - save_cache:
           paths:
             - ~/.m2
           key: BREAD-m2-cache
-      - run: mvn package
       - store_artifacts:
           path: sponge/target/BREAD-Sponge.jar
       - store_artifacts:
