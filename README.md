@@ -23,7 +23,7 @@ The base command is `/bread`.
 ## Build
 This project uses Maven. Just clone a copy of this project to your storage and run `mvn clean package` to build. (Notice: Please run maven with Java 8, otherwise your build will fail.)
 
-The available plugins will be built as `sponge/target/BREAD-Sponge.jar` and `spigot/target/BREAD-Spigot.jar`.
+The output files are `sponge/target/BREAD-Sponge.jar` and `spigot/target/BREAD-Spigot.jar`.
 
 ## Metrics
 This project uses bStats to collect data.
