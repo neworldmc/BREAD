@@ -39,9 +39,7 @@ public final class SpongeCommandSourceCheckProxy implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        if (src instanceof ConsoleSource)
-            return this.realExecutor.execute(src, args);
-        else if (src instanceof Player)
+        if (src instanceof ConsoleSource || src instanceof Player)
             return this.realExecutor.execute(src, args);
         else
             return CommandResult.empty();

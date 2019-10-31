@@ -28,21 +28,25 @@ import top.sunbread.bread.sponge.controller.SpongeController;
 
 public final class SpongeStartCommand implements CommandExecutor {
 
+    private static final int FAST_COLLECTION_PERIOD_MULTIPLIER = 1; // 15 seconds
     private static final int NORMAL_COLLECTION_PERIOD_MULTIPLIER = 4; // 60 seconds
 
     private SpongeController controller;
+    private boolean fast;
 
-    public SpongeStartCommand(SpongeController controller) {
+    public SpongeStartCommand(SpongeController controller, boolean fast) {
         this.controller = controller;
+        this.fast = fast;
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (this.controller.getInfo().getStatus() == SpongeController.ControllerInfo.ControllerStatus.IDLE) {
             src.sendMessage(Text.of(TextColors.YELLOW, "Sub-command ",
-                    TextColors.GREEN, "start",
+                    TextColors.GREEN, this.fast ? "fast" : "start",
                     TextColors.YELLOW, " executed successfully!"));
-            this.controller.startBREAD(src, NORMAL_COLLECTION_PERIOD_MULTIPLIER);
+            this.controller.startBREAD(src,
+                    this.fast ? FAST_COLLECTION_PERIOD_MULTIPLIER : NORMAL_COLLECTION_PERIOD_MULTIPLIER);
             return CommandResult.success();
         } else {
             if (this.controller.getInfo().getCurrentOperatorName().isPresent())
