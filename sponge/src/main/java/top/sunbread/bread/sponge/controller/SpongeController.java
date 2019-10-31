@@ -101,8 +101,7 @@ public final class SpongeController {
     private void analysingStage(Map<UUID, Set<BREADStatistics.Point>> points, int collectionPeriodMultiplier) {
         this.collector = null;
         this.info.setStatus(ControllerInfo.ControllerStatus.ANALYSING);
-        notifyOperator(Text.of(TextColors.YELLOW,
-                "BREAD is analysing the data collected in the previous step..."));
+        notifyOperator(Text.of(TextColors.YELLOW, "BREAD is analysing the data collected in the previous step..."));
         notifyOperator(Text.of(TextColors.YELLOW, "This process will take a while. Sit back and relax."));
         this.analyser = new BREADAnalyser(points, collectionPeriodMultiplier,
                 statistics -> Task.builder().execute(() -> {
