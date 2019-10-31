@@ -23,7 +23,10 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 import top.sunbread.bread.BREAD;
-import top.sunbread.bread.sponge.commands.*;
+import top.sunbread.bread.sponge.commands.SpongeCommandSourceCheckProxy;
+import top.sunbread.bread.sponge.commands.SpongeStartCommand;
+import top.sunbread.bread.sponge.commands.SpongeStatusCommand;
+import top.sunbread.bread.sponge.commands.SpongeStopCommand;
 import top.sunbread.bread.sponge.controller.SpongeController;
 
 public final class SpongeProxy {
@@ -74,11 +77,11 @@ public final class SpongeProxy {
                 build();
         CommandSpec startCommand = CommandSpec.builder().
                 description(Text.of("To start BREAD")).
-                executor(SpongeCommandSourceCheckProxy.of(new SpongeStartCommand(this.controller))).
+                executor(SpongeCommandSourceCheckProxy.of(new SpongeStartCommand(this.controller, false))).
                 build();
         CommandSpec startFastCommand = CommandSpec.builder().
                 description(Text.of("To start fast BREAD")).
-                executor(SpongeCommandSourceCheckProxy.of(new SpongeStartFastCommand(this.controller))).
+                executor(SpongeCommandSourceCheckProxy.of(new SpongeStartCommand(this.controller, true))).
                 build();
         CommandSpec stopCommand = CommandSpec.builder().
                 description(Text.of("To stop running BREAD")).

@@ -1,10 +1,14 @@
 # BREAD
-Block Redstone Event Analyse and Diagnose
+[![CircleCI](https://circleci.com/gh/neworldmc/BREAD.svg?style=svg)](https://circleci.com/gh/neworldmc/BREAD)
+
+*Block Redstone Event Analyse and Diagnose*
+
+BREAD is a plugin for analysing redstone data in the server. With this plugin, you can use a simple command to check most of redstone updates in the whole server at a time, and get a readable analysis report.
 
 ## Commands
 The base command is `/bread`.
 
-- `/bread start` (Sponge) or `/bread run` (Spigot) - Start BREAD
+- `/bread start` - Start BREAD
 - `/bread fast` - Start fast BREAD
 - `/bread stop` - Stop running BREAD
 - `/bread status` - View status of BREAD, and last BREAD result if it exists
@@ -19,7 +23,7 @@ The base command is `/bread`.
 ## Build
 This project uses Maven. Just clone a copy of this project to your storage and run `mvn clean package` to build. (Notice: Please run maven with Java 8, otherwise your build will fail.)
 
-The available plugins will be built as `sponge/target/BREAD-Sponge.jar` and `spigot/target/BREAD-Spigot.jar`.
+The output files are `sponge/target/BREAD-Sponge.jar` and `spigot/target/BREAD-Spigot.jar`.
 
 ## Metrics
 This project uses bStats to collect data.
@@ -30,3 +34,6 @@ For Spigot, this function is enabled by default. If you don't want to send data 
 
 ## Contributing
 Just fork this project, modify your fork, and send a pull request to our project, like contributing on other projects on GitHub.
+
+## Chat
+The official IRC channel is `#mcplugin-bread` on [irc.freenode.net](https://webchat.freenode.net).

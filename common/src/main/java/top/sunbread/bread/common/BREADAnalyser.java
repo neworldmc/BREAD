@@ -37,8 +37,7 @@ import java.util.stream.Collectors;
 public final class BREADAnalyser {
 
     public static final int COLLECTING_TICKS_BASE = 300;
-    private static final int THREADS = 16;
-    private static final int TIMEOUT_MINUTES = 5;
+    private static final int TIMEOUT_MINUTES = 1;
 
     private volatile ExecutorService threadPool;
     private CompletableFuture<Void> future;
@@ -53,7 +52,7 @@ public final class BREADAnalyser {
      */
     public BREADAnalyser(Map<UUID, Set<Point>> points, int collectionPeriodMultiplier,
                          Consumer<Optional<Map<UUID, WorldStatistics>>> asyncCallback) {
-        this.threadPool = Executors.newFixedThreadPool(THREADS);
+        this.threadPool = Executors.newWorkStealingPool();
         Function<Set<Point>, CompletableFuture<List<Set<Point>>>> clusterAnalysisProvider =
                 p -> CompletableFuture.supplyAsync(() ->
                         BREADAnalysis.clusterAnalysis(p, collectionPeriodMultiplier), this.threadPool);
