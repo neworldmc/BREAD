@@ -36,4 +36,4 @@ For Spigot, this function is enabled by default. If you don't want to send data 
 Just fork this project, modify your fork, and send a pull request to our project, like contributing on other projects on GitHub.
 
 ## Chat
-The official IRC channel is `#mcplugin-bread` on [irc.freenode.net](https://webchat.freenode.net/).
+The official IRC channel is `#mcplugin-bread` on [irc.freenode.net](https://webchat.freenode.net).
