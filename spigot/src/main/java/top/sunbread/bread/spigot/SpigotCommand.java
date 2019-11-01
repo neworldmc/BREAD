@@ -107,7 +107,7 @@ final class SpigotCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
         if (sender.hasPermission("bread.admin") && args.length == 1)
-            return Stream.of("status", "start", "fast", "stop").
+            return Stream.of("status", "start", "semi-fast", "fast", "stop").
                     filter(subCmd -> subCmd.toLowerCase().startsWith(args[args.length - 1].toLowerCase())).
                     collect(Collectors.toList());
         else return Collections.emptyList();
