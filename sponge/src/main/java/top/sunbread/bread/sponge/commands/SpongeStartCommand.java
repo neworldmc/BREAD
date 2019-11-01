@@ -28,9 +28,6 @@ import top.sunbread.bread.sponge.controller.SpongeController;
 
 public final class SpongeStartCommand implements CommandExecutor {
 
-    private static final int FAST_COLLECTION_PERIOD_MULTIPLIER = 1;
-    private static final int NORMAL_COLLECTION_PERIOD_MULTIPLIER = 4; // 60 seconds
-
     private SpongeController controller;
     private CollectingMode mode;
 
