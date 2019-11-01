@@ -9,6 +9,7 @@ BREAD is a plugin for analysing redstone data in the server. With this plugin, y
 The base command is `/bread`.
 
 - `/bread start` - Start BREAD
+- `/bread semi-fast` - Start semi-fast BREAD
 - `/bread fast` - Start fast BREAD
 - `/bread stop` - Stop running BREAD
 - `/bread status` - View status of BREAD, and last BREAD result if it exists

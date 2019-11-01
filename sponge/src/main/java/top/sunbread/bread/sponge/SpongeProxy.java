@@ -77,11 +77,18 @@ public final class SpongeProxy {
                 build();
         CommandSpec startCommand = CommandSpec.builder().
                 description(Text.of("To start BREAD")).
-                executor(SpongeCommandSourceCheckProxy.of(new SpongeStartCommand(this.controller, false))).
+                executor(SpongeCommandSourceCheckProxy.of(new SpongeStartCommand(this.controller,
+                        SpongeStartCommand.CollectingMode.NORMAL))).
+                build();
+        CommandSpec startSemiFastCommand = CommandSpec.builder().
+                description(Text.of("To start semi-fast BREAD")).
+                executor(SpongeCommandSourceCheckProxy.of(new SpongeStartCommand(this.controller,
+                        SpongeStartCommand.CollectingMode.SEMI_FAST))).
                 build();
         CommandSpec startFastCommand = CommandSpec.builder().
                 description(Text.of("To start fast BREAD")).
-                executor(SpongeCommandSourceCheckProxy.of(new SpongeStartCommand(this.controller, true))).
+                executor(SpongeCommandSourceCheckProxy.of(new SpongeStartCommand(this.controller,
+                        SpongeStartCommand.CollectingMode.FAST))).
                 build();
         CommandSpec stopCommand = CommandSpec.builder().
                 description(Text.of("To stop running BREAD")).
@@ -92,6 +99,7 @@ public final class SpongeProxy {
                 description(Text.of("Base command for BREAD")).
                 child(statusCommand, "status").
                 child(startCommand, "start").
+                child(startSemiFastCommand, "semi-fast").
                 child(startFastCommand, "fast").
                 child(stopCommand, "stop").
                 build();

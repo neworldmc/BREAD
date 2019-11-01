@@ -22,7 +22,7 @@
     <parent>
         <artifactId>bread</artifactId>
         <groupId>top.sunbread</groupId>
-        <version>0.3.2</version>
+        <version>0.3.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -118,6 +118,7 @@
                 <configuration>
                     <obfuscate>false</obfuscate>
                     <options>
+                        <option>-keep class ${project.pluginPackage}.stats.bukkit.** { *; }</option>
                         <option>
                             -keep class ${project.pluginPackage}.BREAD
                             { public void on*(); }

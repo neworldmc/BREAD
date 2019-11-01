@@ -28,25 +28,21 @@ import top.sunbread.bread.sponge.controller.SpongeController;
 
 public final class SpongeStartCommand implements CommandExecutor {
 
-    private static final int FAST_COLLECTION_PERIOD_MULTIPLIER = 1; // 15 seconds
-    private static final int NORMAL_COLLECTION_PERIOD_MULTIPLIER = 4; // 60 seconds
-
     private SpongeController controller;
-    private boolean fast;
+    private CollectingMode mode;
 
-    public SpongeStartCommand(SpongeController controller, boolean fast) {
+    public SpongeStartCommand(SpongeController controller, CollectingMode mode) {
         this.controller = controller;
-        this.fast = fast;
+        this.mode = mode;
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         if (this.controller.getInfo().getStatus() == SpongeController.ControllerInfo.ControllerStatus.IDLE) {
             src.sendMessage(Text.of(TextColors.YELLOW, "Sub-command ",
-                    TextColors.GREEN, this.fast ? "fast" : "start",
+                    TextColors.GREEN, this.mode.getCommandName(),
                     TextColors.YELLOW, " executed successfully!"));
-            this.controller.startBREAD(src,
-                    this.fast ? FAST_COLLECTION_PERIOD_MULTIPLIER : NORMAL_COLLECTION_PERIOD_MULTIPLIER);
+            this.controller.startBREAD(src, this.mode.getCollectionPeriodMultiplier());
             return CommandResult.success();
         } else {
             if (this.controller.getInfo().getCurrentOperatorName().isPresent())
@@ -56,6 +52,30 @@ public final class SpongeStartCommand implements CommandExecutor {
                 src.sendMessage(Text.of(TextColors.RED, "There is already a running BREAD."));
             return CommandResult.empty();
         }
+    }
+
+    public enum CollectingMode {
+
+        FAST("fast", 1), // 15 seconds
+        SEMI_FAST("semi-fast", 2), // 30 seconds
+        NORMAL("start", 4); // 60 seconds
+
+        private String commandName;
+        private int collectionPeriodMultiplier;
+
+        CollectingMode(String commandName, int collectionPeriodMultiplier) {
+            this.commandName = commandName;
+            this.collectionPeriodMultiplier = collectionPeriodMultiplier;
+        }
+
+        String getCommandName() {
+            return commandName;
+        }
+
+        int getCollectionPeriodMultiplier() {
+            return collectionPeriodMultiplier;
+        }
+
     }
 
 }

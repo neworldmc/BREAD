@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 final class SpigotCommand implements CommandExecutor, TabCompleter {
 
     private static final int NORMAL_COLLECTION_PERIOD_MULTIPLIER = 4; // 60 seconds
+    private static final int SEMI_FAST_COLLECTION_PERIOD_MULTIPLIER = 2; // 30 seconds
     private static final int FAST_COLLECTION_PERIOD_MULTIPLIER = 1; // 15 seconds
 
     private SpigotController controller;
@@ -65,6 +66,15 @@ final class SpigotCommand implements CommandExecutor, TabCompleter {
                                 ChatColor.GREEN + "start" +
                                 ChatColor.YELLOW + " executed successfully!");
                         this.controller.runBREAD(sender, NORMAL_COLLECTION_PERIOD_MULTIPLIER);
+                    } else sender.sendMessage(ChatColor.RED + "There is already a BREAD run by " +
+                            this.controller.getCurrentOperator().getName() + ".");
+                    break;
+                case "semi-fast":
+                    if (this.controller.getStatus() == SpigotController.ControllerStatus.IDLE) {
+                        sender.sendMessage(ChatColor.YELLOW + "Sub-command " +
+                                ChatColor.GREEN + "semi-fast" +
+                                ChatColor.YELLOW + " executed successfully!");
+                        this.controller.runBREAD(sender, SEMI_FAST_COLLECTION_PERIOD_MULTIPLIER);
                     } else sender.sendMessage(ChatColor.RED + "There is already a BREAD run by " +
                             this.controller.getCurrentOperator().getName() + ".");
                     break;
@@ -97,7 +107,7 @@ final class SpigotCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
         if (sender.hasPermission("bread.admin") && args.length == 1)
-            return Stream.of("status", "start", "fast", "stop").
+            return Stream.of("status", "start", "semi-fast", "fast", "stop").
                     filter(subCmd -> subCmd.toLowerCase().startsWith(args[args.length - 1].toLowerCase())).
                     collect(Collectors.toList());
         else return Collections.emptyList();
