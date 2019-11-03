@@ -70,7 +70,7 @@ final class BREADAnalysis {
             // Collecting core points
             Set<PointData> corePointsData = pointsData.parallelStream().unordered().
                     filter(pointData -> pointData.pointAttribute == PointAttribute.CORE).
-                    collect(Collectors.toSet());
+                    collect(Collectors.toCollection(HashSet::new));
 
             // Constructing Union-Collect Set (a variant of Union-Find Set) of core points
             UnionCollect<PointData> clustersUnionCollect = new UnionCollect<>(corePointsData);
@@ -120,7 +120,6 @@ final class BREADAnalysis {
             result.add(pointsData.parallelStream().unordered().
                     filter(pointData -> pointData.pointAttribute == PointAttribute.NONE).
                     map(pointData -> pointData.point).collect(Collectors.toSet()));
-            pointsData.clear();
 
             // Return results
             return result;
