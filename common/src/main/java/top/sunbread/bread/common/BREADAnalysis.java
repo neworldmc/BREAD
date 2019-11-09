@@ -68,30 +68,58 @@ final class BREADAnalysis {
                     forEach(corePointData -> corePointData.pointAttribute = PointAttribute.CORE);
 
             // Collecting core points
-            Set<PointData> corePointsData = pointsData.parallelStream().unordered().
+            List<PointData> corePointsData = pointsData.parallelStream().unordered().
                     filter(pointData -> pointData.pointAttribute == PointAttribute.CORE).
-                    collect(Collectors.toCollection(HashSet::new));
+                    collect(Collectors.toCollection(ArrayList::new));
 
-            // Constructing Union-Collect Set (a variant of Union-Find Set) of core points
-            UnionCollect<PointData> clustersUnionCollect = new UnionCollect<>(corePointsData);
+            // Numbering core points
+            IntStream.range(0, corePointsData.size()).parallel().unordered().forEach(index ->
+                    corePointsData.get(index).extraData = index + 1);
 
-            // Merging core points
-            corePointsData.parallelStream().unordered().forEach(corePointData ->
+            // Making the graph of core points
+            List<List<Integer>> adjacencyList = corePointsData.parallelStream().unordered().map(corePointData ->
                     rangeTree.getNeighborPointsManhattan(corePointData, EPSILON).parallelStream().unordered().
                             filter(pointData -> pointData.pointAttribute == PointAttribute.CORE).
-                            forEach(neighborPointData ->
-                                    clustersUnionCollect.union(corePointData, neighborPointData)));
-            corePointsData.clear();
+                            map(pointData -> pointData.extraData - 1).
+                            collect(Collectors.toList())).
+                    collect(Collectors.toCollection(ArrayList::new));
 
-            // Collecting core points from Union-Collect Set
-            List<Set<PointData>> clusters = new ArrayList<>(clustersUnionCollect.collect());
-            clustersUnionCollect.clear();
+            // Searching components in the graph
+            int[] componentNumbers = new int[corePointsData.size()];
+            Arrays.fill(componentNumbers, 0);
+            for (int index = 0, currentComponent = 0; index < corePointsData.size(); ++index) {
+                if (componentNumbers[index] != 0) continue;
+                ++currentComponent;
+                Stack<Integer> vertexStack = new Stack<>();
+                Stack<List<Integer>> adjacentVerticesStack = new Stack<>();
+                vertexStack.push(index);
+                adjacentVerticesStack.push(null);
+                while (!vertexStack.empty()) {
+                    int vertex = vertexStack.peek();
+                    List<Integer> adjacentVertices = adjacentVerticesStack.peek();
+                    componentNumbers[vertex] = currentComponent;
+                    if (adjacentVertices == null) {
+                        adjacentVerticesStack.pop();
+                        adjacentVertices = adjacencyList.get(vertex).stream().
+                                filter(adjacentVertex -> componentNumbers[adjacentVertex] == 0).
+                                collect(Collectors.toCollection(LinkedList::new));
+                        adjacentVerticesStack.push(adjacentVertices);
+                    }
+                    if (adjacentVertices.isEmpty()) {
+                        vertexStack.pop();
+                        adjacentVerticesStack.pop();
+                    } else {
+                        vertexStack.push(adjacentVertices.remove(0));
+                        adjacentVerticesStack.push(null);
+                    }
+                }
+            }
+            adjacencyList.clear();
 
             // Numbering core points according to clusters
-            IntStream.range(0, clusters.size()).parallel().unordered().forEach(index ->
-                    clusters.get(index).parallelStream().unordered().forEach(pointData ->
-                            pointData.extraData = index + 1));
-            clusters.clear();
+            IntStream.range(0, corePointsData.size()).parallel().unordered().forEach(index ->
+                    corePointsData.get(index).extraData = componentNumbers[index]);
+            corePointsData.clear();
 
             // Dyeing and numbering reachable points
             BiFunction<PointData, PointData, Integer> manhattanDistance =
@@ -380,74 +408,6 @@ final class BREADAnalysis {
                 if (this == o) return true;
                 if (!(o instanceof Node)) return false;
                 return this.uuid.equals(((Node) o).uuid);
-            }
-
-        }
-
-    }
-
-    /**
-     * An implementation of a derivative of Disjoint-Set.
-     * It's used to union elements efficiently and collect the result.
-     *
-     * @param <E> Element type
-     * @see <a href="https://en.wikipedia.org/wiki/Disjoint-set_data_structure">Wikipedia</a>
-     */
-    private static final class UnionCollect<E> {
-
-        private List<E> nodes;
-        private int[] parents;
-
-        UnionCollect(Set<E> elements) {
-            this.nodes = new ArrayList<>(elements);
-            this.parents = IntStream.range(0, this.nodes.size()).toArray();
-        }
-
-        synchronized void union(E element1, E element2) {
-            if (element1 == element2) return;
-            if (!this.nodes.contains(element1) || !this.nodes.contains(element2)) return;
-            Root root1 = getRoot(this.nodes.indexOf(element1));
-            Root root2 = getRoot(this.nodes.indexOf(element2));
-            if (root1.node == root2.node) return;
-            if (root1.rank < root2.rank)
-                this.parents[root1.node] = root2.node;
-            else
-                this.parents[root2.node] = root1.node;
-        }
-
-        Set<Set<E>> collect() {
-            Map<Integer, Set<E>> collector = new LinkedHashMap<>();
-            for (int node = 0; node < this.nodes.size(); ++node) {
-                int root = getRoot(node).node;
-                if (!collector.containsKey(root)) collector.put(root, new HashSet<>());
-                collector.get(root).add(this.nodes.get(node));
-            }
-            return new HashSet<>(collector.values());
-        }
-
-        void clear() {
-            this.nodes.clear();
-            this.parents = new int[0];
-        }
-
-        private Root getRoot(int node) {
-            int rank = 0;
-            if (node != this.parents[node]) {
-                Root root = getRoot(this.parents[node]);
-                this.parents[node] = root.node;
-                rank = root.rank + 1;
-            }
-            return new Root(this.parents[node], rank);
-        }
-
-        private static final class Root {
-
-            int node;
-            int rank;
-
-            Root(int node, int rank) {
-                this.node = node;
-                this.rank = rank;
             }
 
         }
