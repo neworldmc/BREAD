@@ -61,9 +61,9 @@ class BREADAnalysisTest {
             BREADStatistics.Point randomCenter = clusterCenters.get(rand.nextInt(clusterCenters.size()));
             BREADStatistics.Point location;
             do {
-                location = new BREADStatistics.Point(randomCenter.x + rand.nextInt(64 + 1) - 128,
-                        randomCenter.y + rand.nextInt(64 + 1) - 128,
-                        randomCenter.z + rand.nextInt(64 + 1) - 128,
+                location = new BREADStatistics.Point(randomCenter.x + rand.nextInt(32 + 1) - 64,
+                        randomCenter.y + rand.nextInt(32 + 1) - 64,
+                        randomCenter.z + rand.nextInt(32 + 1) - 64,
                         0);
             }
             while (marked.contains(location));
