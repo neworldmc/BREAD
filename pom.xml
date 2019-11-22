@@ -24,7 +24,7 @@
     <groupId>top.sunbread</groupId>
     <artifactId>bread</artifactId>
     <name>BREAD</name>
-    <version>0.3.4-SNAPSHOT</version>
+    <version>0.3.4</version>
     <description>Block Redstone Event Analyse and Diagnose</description>
     <modules>
         <module>common</module>
