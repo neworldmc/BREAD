@@ -85,41 +85,14 @@ final class BREADAnalysis {
                     collect(Collectors.toCollection(ArrayList::new));
 
             // Searching components in the graph
-            int[] componentNumbers = new int[corePointsData.size()];
-            Arrays.fill(componentNumbers, 0);
-            for (int index = 0, currentComponent = 0; index < corePointsData.size(); ++index) {
-                if (componentNumbers[index] != 0) continue;
-                ++currentComponent;
-                Stack<Integer> vertexStack = new Stack<>();
-                Stack<List<Integer>> adjacentVerticesStack = new Stack<>();
-                vertexStack.push(index);
-                adjacentVerticesStack.push(null);
-                while (!vertexStack.empty()) {
-                    int vertex = vertexStack.peek();
-                    List<Integer> adjacentVertices = adjacentVerticesStack.peek();
-                    componentNumbers[vertex] = currentComponent;
-                    if (adjacentVertices == null) {
-                        adjacentVerticesStack.pop();
-                        adjacentVertices = adjacencyList.get(vertex).stream().
-                                filter(adjacentVertex -> componentNumbers[adjacentVertex] == 0).
-                                collect(Collectors.toCollection(LinkedList::new));
-                        adjacentVerticesStack.push(adjacentVertices);
-                    }
-                    if (adjacentVertices.isEmpty()) {
-                        vertexStack.pop();
-                        adjacentVerticesStack.pop();
-                    } else {
-                        vertexStack.push(adjacentVertices.remove(0));
-                        adjacentVerticesStack.push(null);
-                    }
-                }
-            }
+            List<Integer> componentNumbers = searchComponents(adjacencyList);
             adjacencyList.clear();
 
             // Numbering core points according to clusters
             IntStream.range(0, corePointsData.size()).parallel().unordered().forEach(index ->
-                    corePointsData.get(index).extraData = componentNumbers[index]);
+                    corePointsData.get(index).extraData = componentNumbers.get(index) + 1);
             corePointsData.clear();
+            componentNumbers.clear();
 
             // Dyeing and numbering reachable points
             BiFunction<PointData, PointData, Integer> manhattanDistance =
@@ -195,6 +168,45 @@ final class BREADAnalysis {
     static NoiseStatistics countNoise(Set<Point> noise, int collectionPeriod) {
         return new NoiseStatistics(noise, (double) noise.parallelStream().
                 mapToInt(point -> point.w).sum() / collectionPeriod);
+    }
+
+    /**
+     * Search components in the specific graph.
+     *
+     * @param adjacencyList Adjacency list of the graph
+     * @return A list of component numbers of vertices
+     */
+    private static List<Integer> searchComponents(List<List<Integer>> adjacencyList) {
+        int[] componentNumbers = new int[adjacencyList.size()];
+        Arrays.fill(componentNumbers, -1);
+        for (int index = 0, currentComponent = 0; index < adjacencyList.size(); ++index) {
+            if (componentNumbers[index] != -1) continue;
+            Stack<Integer> vertexStack = new Stack<>();
+            Stack<List<Integer>> adjacentVerticesStack = new Stack<>();
+            vertexStack.push(index);
+            adjacentVerticesStack.push(null);
+            while (!vertexStack.empty()) {
+                int vertex = vertexStack.peek();
+                List<Integer> adjacentVertices = adjacentVerticesStack.peek();
+                componentNumbers[vertex] = currentComponent;
+                if (adjacentVertices == null) {
+                    adjacentVerticesStack.pop();
+                    adjacentVertices = adjacencyList.get(vertex).stream().
+                            filter(adjacentVertex -> componentNumbers[adjacentVertex] == -1).
+                            collect(Collectors.toCollection(LinkedList::new));
+                    adjacentVerticesStack.push(adjacentVertices);
+                }
+                if (adjacentVertices.isEmpty()) {
+                    vertexStack.pop();
+                    adjacentVerticesStack.pop();
+                } else {
+                    vertexStack.push(adjacentVertices.remove(0));
+                    adjacentVerticesStack.push(null);
+                }
+            }
+            ++currentComponent;
+        }
+        return Arrays.stream(componentNumbers).boxed().collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
