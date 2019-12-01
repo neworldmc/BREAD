@@ -1,5 +1,7 @@
 # BREAD
-[![CircleCI](https://circleci.com/gh/neworldmc/BREAD.svg?style=svg)](https://circleci.com/gh/neworldmc/BREAD)
+[![CircleCI](https://img.shields.io/circleci/build/gh/neworldmc/BREAD)](https://circleci.com/gh/neworldmc/BREAD)
+[![Sponge Project Page](https://img.shields.io/badge/project--page-sponge-blue)](https://ore.spongepowered.org/NEWorld-Minecraft/BREAD)
+[![Spigot Project Page](https://img.shields.io/badge/project--page-spigot-blue)](https://www.spigotmc.org/resources/bread.72428/)
 
 *Block Redstone Event Analyse and Diagnose*
 
